@@ -2,6 +2,7 @@
 using Roommates.Repositories;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Roommates
 {
@@ -149,6 +150,53 @@ namespace Roommates
                         Console.Write("Press any key to continue");
                         Console.ReadKey();
                         break;
+                    case ("Update a room"):
+                        List<Room> roomOptions = roomRepo.GetAll();
+                        foreach (Room r in roomOptions)
+                        {
+                            Console.WriteLine($"{r.Id} - {r.Name} Max Occupancy({r.MaxOccupancy})");
+                        }
+
+                        Console.Write("Which room would you like to update? ");
+                        int selectedRoomId = int.Parse(Console.ReadLine());
+                        Room selectedRoom = roomOptions.FirstOrDefault(r => r.Id == selectedRoomId);
+
+                        Console.Write("New Name: ");
+                        selectedRoom.Name = Console.ReadLine();
+
+                        Console.Write("New Max Occupancy: ");
+                        selectedRoom.MaxOccupancy = int.Parse(Console.ReadLine());
+
+                        roomRepo.Update(selectedRoom);
+
+                        Console.WriteLine("Room has been successfully updated");
+                        Console.Write("Press any key to continue");
+                        Console.ReadKey();
+                        break;
+
+                    case ("Delete room"):
+                        List<Room> delroom = roomRepo.GetAll();
+                        foreach (Room r in delroom)
+                        {
+                            Console.WriteLine($"{r.Id} - {r.Name}");
+                        }
+                        Console.WriteLine("Which room would you like to delete?");
+                        int roomid = int.Parse(Console.ReadLine());
+                        try
+                        {
+                            roomRepo.Delete(roomid);
+                        }
+                        catch 
+                        {
+                            Console.WriteLine("Room cannot be deleted, there is someone living in it...");
+                            Console.Write("Press any key to continue");
+                            Console.ReadKey();
+                            break;
+                        }
+                        Console.WriteLine($"You have deleted room with {roomid}");
+                        Console.Write("Press any key to continue");
+                        Console.ReadKey();
+                        break;
                     case ("Exit"):
                         runProgram = false;
                         break;
@@ -173,6 +221,8 @@ namespace Roommates
                 "Find unassigned chores",
                 "Assign chores",
                 "Get chore counts",
+                "Update a room",
+                "Delete room",
                 "Exit"
             };
 
