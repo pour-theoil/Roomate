@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Roommates.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Roommates.Repositories
@@ -128,6 +129,67 @@ namespace Roommates.Repositories
                     int id = (int)cmd.ExecuteScalar();
 
                     chore.Id = id;
+                }
+            }
+        }
+
+        public void AssignChore(int chore, int roommate)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+
+                    cmd.CommandText = @"Insert into RoommateChore (RoommateId, ChoreId) output inserted.id values(@roommateid, @choreid)";
+                    cmd.Parameters.AddWithValue("@roommateid", roommate);
+                    cmd.Parameters.AddWithValue("@choreid", chore);
+                    cmd.ExecuteScalar();
+
+                    int success = (int)cmd.ExecuteScalar();
+
+                    Console.WriteLine($"You have successfully added another chore!");
+                }
+            }
+
+        }
+
+        public List<RoommateChoreCount> GetChoreCount()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select r.FirstName, count(r.firstname) as Count
+                                        from RoommateChore rc join Roommate r on rc.RoommateId = r.id
+                                        group by r.FirstName;";
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    List<RoommateChoreCount> counts = new List<RoommateChoreCount>();
+
+                    while (reader.Read())
+                    {
+
+
+                        int fnameColumn = reader.GetOrdinal("FirstName");
+                        string firstname = reader.GetString(fnameColumn);
+
+                        int countColumn = reader.GetOrdinal("Count");
+                        int chorecount = reader.GetInt32(countColumn);
+
+                        RoommateChoreCount count = new RoommateChoreCount
+                        {
+                            FirstName = firstname,
+                            NumberChores = chorecount
+                        };
+
+                        counts.Add(count);
+
+                    }
+                    reader.Close();
+                    return counts;
                 }
             }
         }
