@@ -39,8 +39,40 @@ namespace Roommates
                         List<Chore> unchore = chorRepo.GetUnassignedChores();
                         foreach (Chore c in unchore)
                         {
+                            Console.WriteLine($"{c.Id}:) {c.Name}");
+                        }
+                        
+
+                        Console.Write("Press any key to continue");
+                        Console.ReadKey();
+                        break;
+                    case ("Reassign chore"):
+                        List<Chore> assignedchore = chorRepo.GetAssignedChores();
+                        foreach (Chore c in assignedchore)
+                        {
                             Console.WriteLine($"{c.Name} has an Id of {c.Id}");
                         }
+                        Console.Write("Which chore do you want to reassign?");
+                        int choreassign = int.Parse(Console.ReadLine());
+
+                        List<Roommate> assignedmate = chorRepo.GetRoommateAssignedChore(choreassign);
+                        Console.WriteLine("Roommate (s) assigned to chore:");
+                        foreach (Roommate c in assignedmate)
+                        {
+                            Console.WriteLine($"{c.Id}: {c.FirstName} ");
+                        }
+                        Console.Write("Confirm Id of roomate to change? ");
+                        int mateassign = int.Parse(Console.ReadLine());
+
+                        Console.WriteLine("Who are you going to assign to this chore: ");
+                        List<Roommate> roommates = mateRepo.GetAll();
+                        foreach (Roommate r in roommates)
+                        {
+                            Console.WriteLine($"{r.Id} - {r.FirstName} {r.LastName} ");
+                        }
+                        int target = int.Parse(Console.ReadLine());
+                        chorRepo.Reassign(choreassign, mateassign, target);
+
                         Console.Write("Press any key to continue");
                         Console.ReadKey();
                         break;
@@ -129,9 +161,6 @@ namespace Roommates
                         int chorechoice = int.Parse(Console.ReadLine());
 
                         chorRepo.AssignChore(chorechoice, mate);
-
-
-
 
                         Console.Write("Press any key to continue");
                         Console.ReadKey();
@@ -270,6 +299,7 @@ namespace Roommates
                 "Find unassigned chores",
                 "Assign chores",
                 "Get chore counts",
+                "Reassign chore",
                 "Delete chore",
                 
                 "Exit"

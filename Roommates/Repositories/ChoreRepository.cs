@@ -229,6 +229,96 @@ namespace Roommates.Repositories
             }
         }
 
+        public List<Chore> GetAssignedChores()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select c.Name, c.Id
+from RoommateChore rc 
+join Chore c on rc.ChoreId = c.Id
+group by c.name, c.Id;";
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    List<Chore> chores = new List<Chore>();
 
+                    while (reader.Read())
+                    {
+                        int idColumnPosition = reader.GetOrdinal("Id");
+
+                        int idValue = reader.GetInt32(idColumnPosition);
+
+                        int nameColumnPosition = reader.GetOrdinal("Name");
+                        string nameValue = reader.GetString(nameColumnPosition);
+
+                        Chore chore = new Chore
+                        {
+                            Id = idValue,
+                            Name = nameValue
+                        };
+                        chores.Add(chore);
+                    }
+                    reader.Close();
+                    return chores;
+                }
+            }
+        }
+
+        public List<Roommate> GetRoommateAssignedChore(int choreid)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"select r.FirstName, r.Id
+from RoommateChore rc join Roommate r on rc.RoommateId = r.Id
+where rc.ChoreId = @Id";
+                    cmd.Parameters.AddWithValue("@Id", choreid);
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    List<Roommate> choremate = new List<Roommate>();
+                    while (reader.Read())
+                    {
+                        int idColumnPosition = reader.GetOrdinal("Id");
+
+                        int idValue = reader.GetInt32(idColumnPosition);
+
+                        int nameColumnPosition = reader.GetOrdinal("FirstName");
+                        string nameValue = reader.GetString(nameColumnPosition);
+
+                        Roommate mate = new Roommate
+                        {
+                            Id = idValue,
+                            FirstName = nameValue
+                        };
+                        choremate.Add(mate);
+                    }
+                    reader.Close();
+                    return choremate;
+                }
+            }
+        }
+
+        public void Reassign(int choreid, int mateid, int target)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"Update RoommateChore
+                                        set RoommateId = @target
+                                        where RoommateId = @mateid
+                                        and ChoreId = @choreid";
+                    cmd.Parameters.AddWithValue("@choreid", choreid);
+                    cmd.Parameters.AddWithValue("@mateid", mateid);
+                    cmd.Parameters.AddWithValue("@target", target);
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
